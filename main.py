@@ -1,8 +1,9 @@
-import sys
 import math
 import random
-import pygame
+import sys
 from typing import List, Tuple
+
+import pygame
 
 # -----------------------------
 # Konfigurasi Game
@@ -53,23 +54,26 @@ OFFSET_Y = (SCREEN_HEIGHT - MAZE_HEIGHT) // 2 + 40
 
 # Arah gerak (dx, dy)
 DIRS = {
-    'STOP': (0, 0),
-    'LEFT': (-1, 0),
-    'RIGHT': (1, 0),
-    'UP': (0, -1),
-    'DOWN': (0, 1),
+    "STOP": (0, 0),
+    "LEFT": (-1, 0),
+    "RIGHT": (1, 0),
+    "UP": (0, -1),
+    "DOWN": (0, 1),
 }
 OPPOSITE = {
-    'LEFT': 'RIGHT',
-    'RIGHT': 'LEFT',
-    'UP': 'DOWN',
-    'DOWN': 'UP',
+    "LEFT": "RIGHT",
+    "RIGHT": "LEFT",
+    "UP": "DOWN",
+    "DOWN": "UP",
 }
 
 
 def grid_to_pixel(grid_pos: Tuple[int, int]) -> Tuple[int, int]:
     gx, gy = grid_pos
-    return OFFSET_X + gx * TILE_SIZE + TILE_SIZE // 2, OFFSET_Y + gy * TILE_SIZE + TILE_SIZE // 2
+    return (
+        OFFSET_X + gx * TILE_SIZE + TILE_SIZE // 2,
+        OFFSET_Y + gy * TILE_SIZE + TILE_SIZE // 2,
+    )
 
 
 def pixel_to_grid(px: int, py: int) -> Tuple[int, int]:
@@ -88,7 +92,12 @@ class Maze:
         for y in range(self.rows):
             for x in range(self.cols):
                 if self.grid[y][x] == 1:
-                    rect = pygame.Rect(OFFSET_X + x * TILE_SIZE, OFFSET_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                    rect = pygame.Rect(
+                        OFFSET_X + x * TILE_SIZE,
+                        OFFSET_Y + y * TILE_SIZE,
+                        TILE_SIZE,
+                        TILE_SIZE,
+                    )
                     self.wall_rects.append(rect)
 
     def is_wall(self, gx: int, gy: int) -> bool:
@@ -119,7 +128,12 @@ class Maze:
         return 0
 
     def pellets_remaining(self) -> int:
-        return sum(1 for y in range(self.rows) for x in range(self.cols) if self.grid[y][x] in (2, 3))
+        return sum(
+            1
+            for y in range(self.rows)
+            for x in range(self.cols)
+            if self.grid[y][x] in (2, 3)
+        )
 
     def draw(self, surface: pygame.Surface):
         # Latar belakang
@@ -127,7 +141,12 @@ class Maze:
         # Grid halus
         for y in range(self.rows):
             for x in range(self.cols):
-                rect = pygame.Rect(OFFSET_X + x * TILE_SIZE, OFFSET_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                rect = pygame.Rect(
+                    OFFSET_X + x * TILE_SIZE,
+                    OFFSET_Y + y * TILE_SIZE,
+                    TILE_SIZE,
+                    TILE_SIZE,
+                )
                 if self.grid[y][x] == 1:
                     pygame.draw.rect(surface, BLUE, rect)
                 else:
@@ -135,11 +154,15 @@ class Maze:
                     if self.grid[y][x] == 2:
                         cx = rect.centerx
                         cy = rect.centery
-                        pygame.draw.circle(surface, WHITE, (cx, cy), max(2, TILE_SIZE // 10))
+                        pygame.draw.circle(
+                            surface, WHITE, (cx, cy), max(2, TILE_SIZE // 10)
+                        )
                     elif self.grid[y][x] == 3:
                         cx = rect.centerx
                         cy = rect.centery
-                        pygame.draw.circle(surface, ORANGE, (cx, cy), max(4, TILE_SIZE // 5))
+                        pygame.draw.circle(
+                            surface, ORANGE, (cx, cy), max(4, TILE_SIZE // 5)
+                        )
 
 
 class Entity:
@@ -149,8 +172,8 @@ class Entity:
         self.color = color
         self.radius = TILE_SIZE // 2 - 2
         self.speed = speed  # pixel per frame
-        self.dir_name = 'STOP'
-        self.next_dir = 'STOP'
+        self.dir_name = "STOP"
+        self.next_dir = "STOP"
 
     def at_center_of_tile(self) -> bool:
         cx, cy = grid_to_pixel((self.grid_pos[0], self.grid_pos[1]))
@@ -166,7 +189,7 @@ class Entity:
 
         # Jika di tengah tile, boleh ganti arah jika tidak menabrak dinding
         if self.at_center_of_tile():
-            if self.next_dir != 'STOP':
+            if self.next_dir != "STOP":
                 ndx, ndy = DIRS[self.next_dir]
                 nx, ny = gx + ndx, gy + ndy
                 if not maze.is_wall(nx, ny):
@@ -174,7 +197,7 @@ class Entity:
             # Cek jika arah sekarang buntu, berhenti
             cdx, cdy = DIRS[self.dir_name]
             if maze.is_wall(gx + cdx, gy + cdy):
-                self.dir_name = 'STOP'
+                self.dir_name = "STOP"
 
         # Gerakkan sesuai arah saat ini
         dx, dy = DIRS[self.dir_name]
@@ -189,7 +212,12 @@ class Entity:
             self.pixel_pos[1] = cy
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, (int(self.pixel_pos[0]), int(self.pixel_pos[1])), self.radius)
+        pygame.draw.circle(
+            surface,
+            self.color,
+            (int(self.pixel_pos[0]), int(self.pixel_pos[1])),
+            self.radius,
+        )
 
 
 class Pacman(Entity):
@@ -201,13 +229,13 @@ class Pacman(Entity):
     def update(self, maze: Maze, keys):
         # Input arah
         if keys[pygame.K_LEFT]:
-            self.set_dir('LEFT')
+            self.set_dir("LEFT")
         elif keys[pygame.K_RIGHT]:
-            self.set_dir('RIGHT')
+            self.set_dir("RIGHT")
         elif keys[pygame.K_UP]:
-            self.set_dir('UP')
+            self.set_dir("UP")
         elif keys[pygame.K_DOWN]:
-            self.set_dir('DOWN')
+            self.set_dir("DOWN")
         self.move(maze)
 
     def draw(self, surface: pygame.Surface):
@@ -219,11 +247,11 @@ class Pacman(Entity):
 
         # Tentukan arah mulut
         dir_to_angle = {
-            'LEFT': 180,
-            'RIGHT': 0,
-            'UP': 90,
-            'DOWN': 270,
-            'STOP': 0,
+            "LEFT": 180,
+            "RIGHT": 0,
+            "UP": 90,
+            "DOWN": 270,
+            "STOP": 0,
         }
         facing = dir_to_angle.get(self.dir_name, 0)
 
@@ -237,8 +265,18 @@ class Pacman(Entity):
             center[0] + int(math.cos(math.radians(facing)) * radius),
             center[1] - int(math.sin(math.radians(facing)) * radius),
         )
-        pygame.draw.polygon(surface, BLACK, [center, tip,
-                                             (center[0] + int(math.cos(end_angle) * radius), center[1] - int(math.sin(end_angle) * radius))])
+        pygame.draw.polygon(
+            surface,
+            BLACK,
+            [
+                center,
+                tip,
+                (
+                    center[0] + int(math.cos(end_angle) * radius),
+                    center[1] - int(math.sin(end_angle) * radius),
+                ),
+            ],
+        )
 
 
 class Ghost(Entity):
@@ -253,7 +291,7 @@ class Ghost(Entity):
         dirs = []
         gx, gy = self.grid_pos
         for name, (dx, dy) in DIRS.items():
-            if name == 'STOP':
+            if name == "STOP":
                 continue
             nx, ny = gx + dx, gy + dy
             if not maze.is_wall(nx, ny):
@@ -264,7 +302,7 @@ class Ghost(Entity):
         # Jika tidak ada (buntu), izinkan berbalik
         if not dirs:
             for name, (dx, dy) in DIRS.items():
-                if name == 'STOP':
+                if name == "STOP":
                     continue
                 nx, ny = gx + dx, gy + dy
                 if not maze.is_wall(nx, ny):
@@ -296,8 +334,8 @@ class Ghost(Entity):
     def respawn(self):
         self.grid_pos = [self.spawn[0], self.spawn[1]]
         self.pixel_pos = list(grid_to_pixel(self.spawn))
-        self.dir_name = 'STOP'
-        self.next_dir = 'STOP'
+        self.dir_name = "STOP"
+        self.next_dir = "STOP"
         self.frightened = False
         self.frightened_timer = 0.0
         self.color = self.base_color
@@ -307,11 +345,11 @@ class Ghost(Entity):
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption('Pacman by Cascade')
+        pygame.display.set_caption("Pacman by Cascade")
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('consolas', 22)
-        self.big_font = pygame.font.SysFont('consolas', 48)
+        self.font = pygame.font.SysFont("consolas", 22)
+        self.big_font = pygame.font.SysFont("consolas", 48)
 
         self.reset()
 
@@ -330,7 +368,9 @@ class Game:
 
     def handle_collisions(self):
         # Makan pelet/power
-        pgx, pgy = pixel_to_grid(int(self.pacman.pixel_pos[0]), int(self.pacman.pixel_pos[1]))
+        pgx, pgy = pixel_to_grid(
+            int(self.pacman.pixel_pos[0]), int(self.pacman.pixel_pos[1])
+        )
         gained = self.maze.eat_at(pgx, pgy)
         if gained:
             self.score += gained
@@ -344,7 +384,10 @@ class Game:
 
         # Tabrakan pacman vs ghost
         for g in self.ghosts:
-            dist = math.hypot(self.pacman.pixel_pos[0] - g.pixel_pos[0], self.pacman.pixel_pos[1] - g.pixel_pos[1])
+            dist = math.hypot(
+                self.pacman.pixel_pos[0] - g.pixel_pos[0],
+                self.pacman.pixel_pos[1] - g.pixel_pos[1],
+            )
             if dist < (self.pacman.radius + g.radius) * 0.9:
                 if g.frightened:
                     # Makan ghost
@@ -382,7 +425,9 @@ class Game:
             p_surf = self.font.render(f"POWER: {self.power_timer:0.1f}s", True, ORANGE)
             self.screen.blit(p_surf, (OFFSET_X + 200, OFFSET_Y - 34))
         # Bantuan
-        help_text = self.font.render("Arrows: Move | R: Restart | ESC: Quit", True, GRAY)
+        help_text = self.font.render(
+            "Arrows: Move | R: Restart | ESC: Quit", True, GRAY
+        )
         self.screen.blit(help_text, (OFFSET_X, OFFSET_Y + MAZE_HEIGHT + 6))
 
     def draw(self):
@@ -417,5 +462,5 @@ class Game:
             self.clock.tick(FPS)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Game().run()
